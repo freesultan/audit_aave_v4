@@ -54,7 +54,8 @@ contract Hub is IHub, AccessManaged {
 
   /// @dev Set of underlying addresses listed as assets in the Hub.
   EnumerableSet.AddressSet internal _underlyingAssets;
-
+  //@>i AccessManaged is an open openzeppeline contract for access control with restricted modifier
+  //@>i you can read the full code at src/dependencies/openzeppelin/AccessManaged.sol and comments there
   /// @dev Constructor.
   /// @dev The authority contract must implement the `AccessManaged` interface for access control.
   /// @param authority_ The address of the authority contract which manages permissions.
@@ -215,10 +216,14 @@ contract Hub is IHub, AccessManaged {
 
   /// @inheritdoc IHubBase
   function add(uint256 assetId, uint256 amount) external returns (uint256) {
+    //@>i add liquidity to the hub for a specific asset on behalf of a user. The function updates the asset's state, validates the addition, calculates shares, and emits an event.
     Asset storage asset = _assets[assetId];
+    
     SpokeData storage spoke = _spokes[assetId][msg.sender];
-
+   //@>i updates drawnIndex, realizedFees, lastUpdateTimestamp
     asset.accrue();
+
+    //@>i check spoke is active and not paused and the cap is not exceeded
     _validateAdd(asset, spoke, amount);
 
     uint256 liquidity = asset.liquidity + amount;
@@ -239,10 +244,12 @@ contract Hub is IHub, AccessManaged {
 
   /// @inheritdoc IHubBase
   function remove(uint256 assetId, uint256 amount, address to) external returns (uint256) {
+    //@>i remove liquidity from the hub for a specific asset on behalf of a user. The function updates the asset's state, validates the removal, calculates shares, and emits an event.
     Asset storage asset = _assets[assetId];
     SpokeData storage spoke = _spokes[assetId][msg.sender];
 
     asset.accrue();
+
     _validateRemove(spoke, amount, to);
 
     uint256 liquidity = asset.liquidity;
@@ -378,10 +385,13 @@ contract Hub is IHub, AccessManaged {
 
   /// @inheritdoc IHubBase
   function refreshPremium(uint256 assetId, PremiumDelta calldata premiumDelta) external {
+    //@>i rebalancing the premium owed for a specific asset and spoke. The function updates the asset's state, validates the premium change, applies the premium delta, and emits an event.
+    //@>i shareDelta x drawnIndex + offsetRayDelta = 0 spockes can change shares and offsetRay but the total premium change must be zero
     Asset storage asset = _assets[assetId];
     SpokeData storage spoke = _spokes[assetId][msg.sender];
 
     asset.accrue();
+
     require(spoke.active, SpokeNotActive());
     // no premium change allowed
     require(premiumDelta.restoredPremiumRay == 0, InvalidPremiumChange());
@@ -393,6 +403,8 @@ contract Hub is IHub, AccessManaged {
 
   /// @inheritdoc IHubBase
   function payFeeShares(uint256 assetId, uint256 shares) external {
+    //@>i feereceiver is a spoke that receives fees for the asset
+    //@>i feereceiver is like a normal spoke except it has a ref in asset struct
     Asset storage asset = _assets[assetId];
     address feeReceiver = _assets[assetId].feeReceiver;
     SpokeData storage receiver = _spokes[assetId][feeReceiver];
@@ -828,7 +840,10 @@ contract Hub is IHub, AccessManaged {
     require(spoke.active, SpokeNotActive());
     require(!spoke.paused, SpokePaused());
     uint256 addCap = spoke.addCap;
+    //@>i validate that the addition does not exceed the spoke's add cap
+
     require(
+      //@>i if the add cap is set to maximum, there is no limit; otherwise, check that the total added assets after addition does not exceed the cap
       addCap == MAX_ALLOWED_SPOKE_CAP ||
         addCap * MathUtils.uncheckedExp(10, asset.decimals) >=
         asset.toAddedAssetsUp(spoke.addedShares) + amount,
