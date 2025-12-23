@@ -14,7 +14,7 @@ import {SharesMath} from 'src/hub/libraries/SharesMath.sol';
 import {Premium} from 'src/hub/libraries/Premium.sol';
 import {IBasicInterestRateStrategy} from 'src/hub/interfaces/IBasicInterestRateStrategy.sol';
 import {IHubBase, IHub} from 'src/hub/interfaces/IHub.sol';
-
+//@>i the main contract which admins and spokes work with that
 /// @title Hub
 /// @author Aave Labs
 /// @notice A liquidity hub that manages assets and spokes.
@@ -405,6 +405,12 @@ contract Hub is IHub, AccessManaged {
   function payFeeShares(uint256 assetId, uint256 shares) external {
     //@>i feereceiver is a spoke that receives fees for the asset
     //@>i feereceiver is like a normal spoke except it has a ref in asset struct
+    /* @>i
+    Asset 0 (WETH) → feeReceiver: TreasurySpoke (0x123)
+    Asset 1 (USDC) → feeReceiver: TreasurySpoke (0x123)
+    Asset 2 (DAI)  → feeReceiver: TreasurySpoke (0x123)
+*/
+  //@>i Utilized to pay liquidation fee (liquidatonlogic.sol)
     Asset storage asset = _assets[assetId];
     address feeReceiver = _assets[assetId].feeReceiver;
     SpokeData storage receiver = _spokes[assetId][feeReceiver];
@@ -427,6 +433,7 @@ contract Hub is IHub, AccessManaged {
     asset.accrue();
     _validateTransferShares(asset, sender, receiver, shares);
     _transferShares(sender, receiver, shares);
+    //
     asset.updateDrawnRate(assetId);
 
     emit TransferShares(assetId, msg.sender, toSpoke, shares);
@@ -434,6 +441,7 @@ contract Hub is IHub, AccessManaged {
 
   /// @inheritdoc IHub
   function sweep(uint256 assetId, uint256 amount) external {
+    //@>i sweep an amount of an asset to send to a reinvestment controller
     require(assetId < _assetCount, AssetNotListed());
     Asset storage asset = _assets[assetId];
 
@@ -454,6 +462,7 @@ contract Hub is IHub, AccessManaged {
 
   /// @inheritdoc IHub
   function reclaim(uint256 assetId, uint256 amount) external {
+    //@>i reclaim the swept amount from the reinvestment controller
     require(assetId < _assetCount, AssetNotListed());
     Asset storage asset = _assets[assetId];
 
