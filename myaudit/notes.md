@@ -7,7 +7,7 @@ drawnRate = draw/borrow interest rate in a second
 ## position manager roles
 - user can set a position manager as approved 
 - a position manager can renounce the approval of users who has approved
-- 
+- Big note: PMs have full control on users positions. 2 position managers are introduced by the protocol but any PM can be used by users although they should be approved by Governance 
 
 ## Invariants
 ```console
@@ -23,3 +23,8 @@ Supply share price and drawn index cannot decrease (remains constant or increase
 ### Questions
 - How procotol manage risk config logic with Spokes?
 - 
+
+## EIP 712 meta transactions
+- we use this eip in signatureGateway and  setUserPositionManagerWithSig
+
+## Pos

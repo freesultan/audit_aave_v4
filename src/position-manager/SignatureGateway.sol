@@ -174,6 +174,7 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
     bytes calldata signature
   ) external onlyRegisteredSpoke(spoke) {
     try
+      //@>q this limits setUserPositionManagerWithSig to this position manager. can we call setUserPositionManagerWithSig directly?
       ISpoke(spoke).setUserPositionManagerWithSig(
         address(this),
         params.user,
