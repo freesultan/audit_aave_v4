@@ -352,6 +352,8 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     uint256 debtToCover,
     bool receiveShares
   ) external {
+    //@>q If orders are deleted, where do the locked funds go? 
+    //@>q Does the code delete/cancel pending orders before calculating the final liquidation amount?
     Reserve storage collateralReserve = _getReserve(collateralReserveId);
     //@>i example collateralReserve = Reserve{hub: Hub, assetId: 10, underlying: WETH, decimals: 18, ...}
     Reserve storage debtReserve = _getReserve(debtReserveId);
@@ -437,6 +439,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     }
     //@>i calculates the user account data with the current user dynamic config
     uint256 newRiskPremium = _calculateUserAccountData(onBehalfOf).riskPremium;
+    //@>i Refreshes premium for borrowed reserves of `user` with `newRiskPremium`
     _notifyRiskPremiumUpdate(onBehalfOf, newRiskPremium);
   }
 
@@ -464,6 +467,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     uint256 deadline,
     bytes calldata signature
   ) external {
+    //@>q why should someone use this when he can simply call setuserpositionmanager? check this
     require(block.timestamp <= deadline, InvalidSignature());
     bytes32 digest = _hashTypedData(
       keccak256(
@@ -493,6 +497,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     emit SetUserPositionManager(onBehalfOf, msg.sender, false);
   }
 
+  //@>q how does permitREserver work? what are permits?
   /// @inheritdoc ISpoke
   function permitReserve(
     uint256 reserveId,

@@ -169,6 +169,7 @@ interface ISpokeBase {
     bool receiveShares
   ) external;
 
+
   /// @notice Returns the total amount of supplied assets of a given reserve.
   /// @param reserveId The identifier of the reserve.
   /// @return The amount of supplied assets.
