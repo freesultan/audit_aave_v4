@@ -353,11 +353,14 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     bool receiveShares
   ) external {
     Reserve storage collateralReserve = _getReserve(collateralReserveId);
+    //@>i example collateralReserve = Reserve{hub: Hub, assetId: 10, underlying: WETH, decimals: 18, ...}
     Reserve storage debtReserve = _getReserve(debtReserveId);
-    
+
     DynamicReserveConfig storage collateralDynConfig = _dynamicConfig[collateralReserveId][
       _userPositions[user][collateralReserveId].dynamicConfigKey
     ];
+    //@>i example:  collateralDynConfig = DynamicReserveConfig{collateralFactor: 8000, maxLiquidationBonus: 11000, liquidationFee: 500}
+
     UserAccountData memory userAccountData = _calculateUserAccountData(user);
 
     uint256 drawnIndex = debtReserve.hub.getAssetDrawnIndex(debtReserve.assetId);
@@ -427,9 +430,12 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
 
   /// @inheritdoc ISpoke
   function updateUserRiskPremium(address onBehalfOf) external {
+    //@>i check if PM is active and approved for user
     if (!_isPositionManager({user: onBehalfOf, manager: msg.sender})) {
+      //@>i! this is an Openzeppline contract AccessManagedUpgradeable. check it
       _checkCanCall(msg.sender, msg.data);
     }
+    //@>i calculates the user account data with the current user dynamic config
     uint256 newRiskPremium = _calculateUserAccountData(onBehalfOf).riskPremium;
     _notifyRiskPremiumUpdate(onBehalfOf, newRiskPremium);
   }
@@ -445,6 +451,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
 
   /// @inheritdoc ISpoke
   function setUserPositionManager(address positionManager, bool approve) external {
+    //@>i everyone can approve an address as positionManager
     _setUserPositionManager({positionManager: positionManager, user: msg.sender, approve: approve});
   }
 
@@ -475,8 +482,10 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     _setUserPositionManager({positionManager: positionManager, user: user, approve: approve});
   }
 
+ 
   /// @inheritdoc ISpoke
   function renouncePositionManagerRole(address onBehalfOf) external {
+   //@>i! every PM can false approval for a user who has approved PM 
     if (!_positionManager[msg.sender].approval[onBehalfOf]) {
       return;
     }
@@ -693,6 +702,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
   }
 
   function _setUserPositionManager(address positionManager, address user, bool approve) internal {
+    //@>i _positionManager is mapping of positionmanagers to their configs. in the config the address of users gave approval to him are present
     PositionManagerConfig storage config = _positionManager[positionManager];
     // only allow approval when position manager is active for improved UX
     require(!approve || config.active, InactivePositionManager());
@@ -728,6 +738,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     PositionStatus storage positionStatus = _positionStatus[user];
 
     uint256 reserveId = _reserveCount;
+
     KeyValueList.List memory collateralInfo = KeyValueList.init(
       positionStatus.collateralCount(reserveId)
     );
