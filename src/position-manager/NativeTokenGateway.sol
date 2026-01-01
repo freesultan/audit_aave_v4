@@ -66,7 +66,7 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
 
     return (suppliedShares, suppliedAmount);
   }
-
+   //@>i withdrawNative and borrowNative are identical except they call corresponding withdraw an borrow from spok
   /// @inheritdoc INativeTokenGateway
   function withdrawNative(
     address spoke,
@@ -74,6 +74,8 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     uint256 amount
   ) external onlyRegisteredSpoke(spoke) returns (uint256, uint256) {
     address underlying = _getReserveUnderlying(spoke, reserveId);
+
+    //@>i validate underlying = _nativeWrapper and amount > 0 
     _validateParams(underlying, amount);
 
     (uint256 withdrawnShares, uint256 withdrawnAmount) = ISpoke(spoke).withdraw(
@@ -81,7 +83,10 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
       amount,
       msg.sender
     );
+
+    //@>i withdraw withdraw from native token and send them to the sender
     _nativeWrapper.withdraw(withdrawnAmount);
+
     Address.sendValue(payable(msg.sender), withdrawnAmount);
 
     return (withdrawnShares, withdrawnAmount);
@@ -93,7 +98,7 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     uint256 reserveId,
     uint256 amount
   ) external onlyRegisteredSpoke(spoke) returns (uint256, uint256) {
-    //@>i users want to borrow from a reserver on a spoke this amount
+    //@>i users want to borrow from a reserve on a spoke this amount
     address underlying = _getReserveUnderlying(spoke, reserveId);
   
     _validateParams(underlying, amount);
@@ -110,6 +115,8 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     return (borrowedShares, borrowedAmount);
   }
 
+  //@>q why withdrawNative and borrowNative don't have nonReentrant modifier?
+
   /// @inheritdoc INativeTokenGateway
   function repayNative(
     address spoke,
@@ -121,8 +128,10 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     _validateParams(underlying, amount);
 
     uint256 userTotalDebt = ISpoke(spoke).getUserTotalDebt(reserveId, msg.sender);
+
     uint256 repayAmount = amount;
     uint256 leftovers;
+
     if (amount > userTotalDebt) {
       leftovers = amount - userTotalDebt;
       repayAmount = userTotalDebt;
@@ -130,7 +139,7 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
 
     _nativeWrapper.deposit{value: repayAmount}();
     _nativeWrapper.forceApprove(spoke, repayAmount);
-    
+    //@>i deposit in nativeWraper and approve spoke to transfer this amount
     (uint256 repaidShares, uint256 repaidAmount) = ISpoke(spoke).repay(
       reserveId,
       repayAmount,
@@ -138,6 +147,7 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     );
 
     if (leftovers > 0) {
+      //@>q read how sendVAlue in ADdress work and if it is implemented correctly here
       Address.sendValue(payable(msg.sender), leftovers);
     }
 

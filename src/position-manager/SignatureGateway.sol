@@ -5,10 +5,15 @@ pragma solidity 0.8.28;
 import {SignatureChecker} from 'src/dependencies/openzeppelin/SignatureChecker.sol';
 import {SafeERC20, IERC20} from 'src/dependencies/openzeppelin/SafeERC20.sol';
 import {IERC20Permit} from 'src/dependencies/openzeppelin/IERC20Permit.sol';
+
 import {EIP712} from 'src/dependencies/solady/EIP712.sol';
+
 import {MathUtils} from 'src/libraries/math/MathUtils.sol';
+
 import {NoncesKeyed} from 'src/utils/NoncesKeyed.sol';
+//@>q check multicall. it can the source of a bug as in multicalls if the multical reverts the signature of some calls may remain valid and suseptible to replay attack
 import {Multicall} from 'src/utils/Multicall.sol';
+
 import {EIP712Hash, EIP712Types} from 'src/position-manager/libraries/EIP712Hash.sol';
 import {GatewayBase} from 'src/position-manager/GatewayBase.sol';
 import {ISpoke} from 'src/spoke/interfaces/ISpoke.sol';
@@ -121,6 +126,7 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
     return ISpoke(spoke).repay(reserveId, repayAmount, user);
   }
 
+
   /// @inheritdoc ISignatureGateway
   function setUsingAsCollateralWithSig(
     EIP712Types.SetUsingAsCollateral calldata params,
@@ -151,12 +157,15 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
     ISpoke(params.spoke).updateUserRiskPremium(params.user);
   }
 
+
   /// @inheritdoc ISignatureGateway
   function updateUserDynamicConfigWithSig(
     EIP712Types.UpdateUserDynamicConfig calldata params,
     bytes calldata signature
   ) external onlyRegisteredSpoke(params.spoke) {
+    //@>i check deadline, singature validation, consume nonce from input calldata
     require(block.timestamp <= params.deadline, InvalidSignature());
+
     bytes32 digest = _hashTypedData(params.hash());
     require(
       SignatureChecker.isValidSignatureNow(params.user, digest, signature),

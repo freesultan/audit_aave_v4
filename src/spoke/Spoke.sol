@@ -192,7 +192,8 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     require(reserveId < _reserveCount, ReserveNotListed());
     _updateReservePriceSource(reserveId, priceSource);
   }
-
+  //@>i add new dynamic config for a reserve
+  //@>i new positions on this reward will use config from now on
   /// @inheritdoc ISpoke
   function addDynamicReserveConfig(
     uint256 reserveId,
@@ -208,7 +209,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     emit AddDynamicReserveConfig(reserveId, dynamicConfigKey, dynamicConfig);
     return dynamicConfigKey;
   }
-
+  //@>i update dynamic config for a reserve
   /// @inheritdoc ISpoke
   function updateDynamicReserveConfig(
     uint256 reserveId,
@@ -245,15 +246,18 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     //@>i returns supplied shares and supplied amount 
     return (suppliedShares, amount);
   }
-
+  //@>q what's the iff between withdraw and borrow in spoke?
   /// @inheritdoc ISpokeBase
   function withdraw(
     uint256 reserveId,
     uint256 amount,
     address onBehalfOf
   ) external onlyPositionManager(onBehalfOf) returns (uint256, uint256) {
+   //@>i reserver storage object consists of: undelying, hub address, dynamicConfigkey, flags, assetId, decimals, collateralRisk
     Reserve storage reserve = _getReserve(reserveId);
+
     UserPosition storage userPosition = _userPositions[onBehalfOf][reserveId];
+
     _validateWithdraw(reserve.flags);
     IHubBase hub = reserve.hub;
     uint256 assetId = reserve.assetId;
@@ -452,6 +456,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     if (!_isPositionManager({user: onBehalfOf, manager: msg.sender})) {
       _checkCanCall(msg.sender, msg.data);
     }
+    //@>i refresh means updating to the latest dynamic reserve config 
     uint256 newRiskPremium = _refreshAndValidateUserAccountData(onBehalfOf).riskPremium;
     _notifyRiskPremiumUpdate(onBehalfOf, newRiskPremium);
   }

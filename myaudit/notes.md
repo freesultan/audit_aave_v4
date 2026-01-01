@@ -34,3 +34,12 @@ Supply share price and drawn index cannot decrease (remains constant or increase
 ## points 
 - Determines available actions — new borrows or collateral withdrawals `are blocked` if they would reduce the Health Factor below 1.0
 - can it be a dos chance?
+
+## Dynamic config keys (Dynamic risk configuration)
+- With each change in configs (Collateral Factor, Liquidation bonus, Protocol fee), the new config adds to the last configs with new config key.
+- New positions use the new config but earlier positions continue to use old config
+- Each reserver retains the latest `configKey` but every user position keeps snapshot of active `configKey` at the time of its last risk-increasing event (remove collateral, get loan)
+
+`Each reserve stores the latest configKey, which represents the current up-to-date risk configuration. In contrast, every user position retains a snapshot of the active configKey corresponding to the configuration in effect at the time of its last risk-increasing event. This snapshot is refreshed across all assets of a user position only when the user performs an action which elevates the risk posed to the system, such as disabling an asset as collateral, withdrawing, or borrowing. When a user designates a new asset as collateral, only the configKey snapshot of the asset in play is refreshed.`
+
+- This means we have more than one config and each user position has it's own config which was active scince his last risk-increasing interaction , but each reserve has the latest configKey

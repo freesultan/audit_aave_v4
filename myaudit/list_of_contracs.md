@@ -19,11 +19,11 @@ aave__aave-v4/src/libraries/types/Roles.sol
 aave__aave-v4/src/misc/UnitPriceFeed.sol
 aave__aave-v4/src/position-manager/GatewayBase.sol
 aave__aave-v4/src/position-manager/interfaces/IGatewayBase.sol
-aave__aave-v4/src/position-manager/interfaces/INativeTokenGateway.sol
+aave__aave-v4/src/position-manager/interfaces/INativeTokenGateway.sol 1
 aave__aave-v4/src/position-manager/interfaces/INativeWrapper.sol
 aave__aave-v4/src/position-manager/interfaces/ISignatureGateway.sol
 aave__aave-v4/src/position-manager/libraries/EIP712Hash.sol
-aave__aave-v4/src/position-manager/NativeTokenGateway.sol
+aave__aave-v4/src/position-manager/NativeTokenGateway.sol 1
 aave__aave-v4/src/position-manager/SignatureGateway.sol
 aave__aave-v4/src/spoke/AaveOracle.sol
 aave__aave-v4/src/spoke/instances/SpokeInstance.sol
