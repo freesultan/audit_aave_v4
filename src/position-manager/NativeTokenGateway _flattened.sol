@@ -11,6 +11,7 @@ import {ISpoke} from 'src/spoke/interfaces/ISpoke.sol';
 import {INativeWrapper} from 'src/position-manager/interfaces/INativeWrapper.sol';
 import {INativeTokenGateway} from 'src/position-manager/interfaces/INativeTokenGateway.sol';
 
+
 /// @title NativeTokenGateway
 /// @author Aave Labs
 /// @notice Gateway to interact with a spoke using the native coin of a chain.
@@ -27,6 +28,7 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     require(nativeWrapper_ != address(0), InvalidAddress());
     _nativeWrapper = INativeWrapper(payable(nativeWrapper_));
   }
+  
 
   /// @dev Checks only 'nativeWrapper' can transfer native tokens.
   receive() external payable {
@@ -55,7 +57,6 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     uint256 amount
   ) external payable nonReentrant onlyRegisteredSpoke(spoke) returns (uint256, uint256) {
     require(msg.value == amount, NativeAmountMismatch());
-
     (uint256 suppliedShares, uint256 suppliedAmount) = _supplyNative(
       spoke,
       reserveId,
@@ -156,18 +157,12 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     address user,
     uint256 amount
   ) internal returns (uint256, uint256) {
-    //@>i ISpoke(spoke).getReserve(reserveId).underlying;
     address underlying = _getReserveUnderlying(spoke, reserveId);
-    //@>i checks underlying == _nativewrapper (a erc20 token wrapper)
     _validateParams(underlying, amount);
-    //@>q how underlying token in spoke is a _nativewrapper?
+
     _nativeWrapper.deposit{value: amount}();
     _nativeWrapper.forceApprove(spoke, amount);
     return ISpoke(spoke).supply(reserveId, amount, user);
-    /*@>i 
-    returns: 
-    uint256 suppliedShares, uint256 suppliedAmount
-    */
   }
 
   function _validateParams(address underlying, uint256 amount) internal view {

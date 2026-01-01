@@ -1,5 +1,7 @@
-#
-
+# aave v4 
+## excalidraw whiteboard
+[whiteboard](https://excalidraw.com/#json=uArLdwspLNqyTeyjKZksd,xgbalUTHpyC5_5OeJyZnxQ)
+## Always read comments if there is refs to other protocols check if there is a problem (check forked from protocols)
 ## focus on pattern detection
 drawnIndex(t) = drawnIndex(t-1) × (1 + drawnRate × Δtime)     
 drawnRate = draw/borrow interest rate in a second
@@ -22,9 +24,13 @@ Supply share price and drawn index cannot decrease (remains constant or increase
 
 ### Questions
 - How procotol manage risk config logic with Spokes?
-- 
+- where do donations occure in spokes?
 
 ## EIP 712 meta transactions
 - we use this eip in signatureGateway and  setUserPositionManagerWithSig
 
-## Pos
+## Gas optimization is in scope
+
+## points 
+- Determines available actions — new borrows or collateral withdrawals `are blocked` if they would reduce the Health Factor below 1.0
+- can it be a dos chance?

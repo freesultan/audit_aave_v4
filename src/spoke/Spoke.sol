@@ -242,7 +242,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     userPosition.suppliedShares += suppliedShares.toUint120();
 
     emit Supply(reserveId, msg.sender, onBehalfOf, suppliedShares, amount);
-
+    //@>i returns supplied shares and supplied amount 
     return (suppliedShares, amount);
   }
 
@@ -412,7 +412,9 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     bool usingAsCollateral,
     address onBehalfOf
   ) external onlyPositionManager(onBehalfOf) {
+    //@>i checks flags are not frozen or paused or usingAsCollateral is not True(hasn't been set as collateral before)
     _validateSetUsingAsCollateral(_getReserve(reserveId).flags, usingAsCollateral);
+
     PositionStatus storage positionStatus = _positionStatus[onBehalfOf];
 
     if (positionStatus.isUsingAsCollateral(reserveId) == usingAsCollateral) {
@@ -421,6 +423,8 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     positionStatus.setUsingAsCollateral(reserveId, usingAsCollateral);
 
     if (usingAsCollateral) {
+      //@>i if you want to set this reserveId to be used as collateral 
+      //@>i set user's reserveId dynamicconfigkey to the reserveid dynamic config key
       _refreshDynamicConfig(onBehalfOf, reserveId);
     } else {
       uint256 newRiskPremium = _refreshAndValidateUserAccountData(onBehalfOf).riskPremium;
@@ -723,6 +727,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
   ) internal returns (UserAccountData memory) {
     UserAccountData memory accountData = _processUserAccountData(user, true);
     emit RefreshAllUserDynamicConfig(user);
+    //@>i HEALTH_FACTOR_LIQUIDATION_THRESHOLD = 1e18
     require(
       accountData.healthFactor >= HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
       HealthFactorBelowThreshold()
@@ -735,6 +740,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     return _processUserAccountData(user, false); // does not modify state
   }
 
+  //@>i what a big function !
   /// @notice Process the user account data and updates dynamic config of the user if `refreshConfig` is true.
   function _processUserAccountData(
     address user,

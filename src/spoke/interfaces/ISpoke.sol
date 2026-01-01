@@ -48,7 +48,7 @@ interface ISpoke is ISpokeBase, IMulticall, INoncesKeyed, IAccessManaged {
     bool liquidatable;
     bool receiveSharesEnabled;
   }
-
+  
   /// @notice Dynamic reserve configuration data.
   /// @dev collateralFactor The proportion of a reserve's value eligible to be used as collateral, expressed in BPS.
   /// @dev maxLiquidationBonus The maximum extra amount of collateral given to the liquidator as bonus, expressed in BPS. 100_00 represents 0.00% bonus.
