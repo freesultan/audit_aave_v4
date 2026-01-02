@@ -5,7 +5,7 @@ pragma solidity 0.8.28;
 import {SignatureChecker} from 'src/dependencies/openzeppelin/SignatureChecker.sol';
 import {SafeERC20, IERC20} from 'src/dependencies/openzeppelin/SafeERC20.sol';
 import {IERC20Permit} from 'src/dependencies/openzeppelin/IERC20Permit.sol';
-
+//@>q what are this solady contract security considerations?
 import {EIP712} from 'src/dependencies/solady/EIP712.sol';
 
 import {MathUtils} from 'src/libraries/math/MathUtils.sol';
@@ -14,7 +14,10 @@ import {NoncesKeyed} from 'src/utils/NoncesKeyed.sol';
 //@>q check multicall. it can the source of a bug as in multicalls if the multical reverts the signature of some calls may remain valid and suseptible to replay attack
 import {Multicall} from 'src/utils/Multicall.sol';
 
+//@>i EIP712Types are structs for function parameters like withdraw, borrow, ...
+//@>i EIP712Hash hash functioni for function parameters which get params as eip712types and return hash of hashconstant + parameters
 import {EIP712Hash, EIP712Types} from 'src/position-manager/libraries/EIP712Hash.sol';
+
 import {GatewayBase} from 'src/position-manager/GatewayBase.sol';
 import {ISpoke} from 'src/spoke/interfaces/ISpoke.sol';
 import {ISignatureGateway} from 'src/position-manager/interfaces/ISignatureGateway.sol';
@@ -31,6 +34,9 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
   using SafeERC20 for IERC20;
   using EIP712Hash for *;
 
+
+
+
   /// @dev Constructor.
   /// @param initialOwner_ The address of the initial owner.
   constructor(address initialOwner_) GatewayBase(initialOwner_) {}
@@ -44,10 +50,13 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
     address spoke = params.spoke;
     uint256 reserveId = params.reserveId;
     address user = params.onBehalfOf;
+    //@>i we can use params.hash() as EIP712Hash library can be used for * 
+    //@>i _hashTypedData is a function from soldy eip712 contract which gets a hash and returns a digest
     bytes32 digest = _hashTypedData(params.hash());
     require(SignatureChecker.isValidSignatureNow(user, digest, signature), InvalidSignature());
     _useCheckedNonce(user, params.nonce);
 
+     //@>i the following function lines are the same as NativeTokenGateway
     IERC20 underlying = IERC20(_getReserveUnderlying(spoke, reserveId));
     underlying.safeTransferFrom(user, address(this), params.amount);
     underlying.forceApprove(spoke, params.amount);
@@ -89,7 +98,11 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
     uint256 reserveId = params.reserveId;
     address user = params.onBehalfOf;
     bytes32 digest = _hashTypedData(params.hash());
+    //@>i isValidSignatureNow from OZ signatureChecker. the outcome of this function can thus
+   // change through time. It could return true at block N and false at block N+1 
     require(SignatureChecker.isValidSignatureNow(user, digest, signature), InvalidSignature());
+    //@>i params.nonce in eip712Types is 256bit so it is a keyNonce
+    //@>i use nonce and increments it by 1
     _useCheckedNonce(user, params.nonce);
 
     IERC20 underlying = IERC20(_getReserveUnderlying(spoke, reserveId));
@@ -112,19 +125,23 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
     address spoke = params.spoke;
     uint256 reserveId = params.reserveId;
     address user = params.onBehalfOf;
+    //@>i 
+    //@>i _hashTypedData is in eip712 from Solady
     bytes32 digest = _hashTypedData(params.hash());
     require(SignatureChecker.isValidSignatureNow(user, digest, signature), InvalidSignature());
     _useCheckedNonce(user, params.nonce);
 
     IERC20 underlying = IERC20(_getReserveUnderlying(spoke, reserveId));
+
     uint256 repayAmount = MathUtils.min(
       params.amount,
       ISpoke(spoke).getUserTotalDebt(reserveId, user)
     );
 
     underlying.safeTransferFrom(user, address(this), repayAmount);
+    //@>i here we approve spoke for repayAmount
     underlying.forceApprove(spoke, repayAmount);
-
+    //@>i repayAmount can not be more that userTotalDebt
     return ISpoke(spoke).repay(reserveId, repayAmount, user);
   }
 
@@ -208,9 +225,11 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
     bytes32 permitR,
     bytes32 permitS
   ) external onlyRegisteredSpoke(spoke) {
+    //@>i gassless signature-based approve for spender(this gateway contract)
     address underlying = _getReserveUnderlying(spoke, reserveId);
     try
       IERC20Permit(underlying).permit({
+        //@>q in permit doc they recommend to use msg.sener as the owner. can using onBehalfOf introduce vulns?
         owner: onBehalfOf,
         spender: address(this),
         value: value,
@@ -220,8 +239,9 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
         s: permitS
       })
     {} catch {}
+    //@>q permitREserve has security considerations. where does this function is used?
   }
-
+//@>i Users can get typehashes constants and sign their intents with them
   /// @inheritdoc ISignatureGateway
   function DOMAIN_SEPARATOR() external view returns (bytes32) {
     return _domainSeparator();

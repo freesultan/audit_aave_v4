@@ -8,6 +8,7 @@ import {EIP712Types} from 'src/libraries/types/EIP712Types.sol';
 /// @author Aave Labs
 /// @notice Helper methods to hash EIP712 typed data structs.
 library EIP712Hash {
+  //@>i keccak256 hashes for function signatures
   bytes32 public constant SUPPLY_TYPEHASH =
     // keccak256('Supply(address spoke,uint256 reserveId,uint256 amount,address onBehalfOf,uint256 nonce,uint256 deadline)')
     0xe85497eb293c001e8483fe105efadd1d50aa0dadfc0570b27058031dfceab2e6;

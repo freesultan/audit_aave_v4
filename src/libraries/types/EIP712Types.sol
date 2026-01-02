@@ -6,6 +6,7 @@ pragma solidity ^0.8.20;
 /// @author Aave Labs
 /// @notice Defines type structs used in EIP712-typed signatures.
 library EIP712Types {
+  //@>i all eip712 types have nonce and deadline
   struct SetUserPositionManager {
     address positionManager;
     address user;
@@ -13,7 +14,7 @@ library EIP712Types {
     uint256 nonce;
     uint256 deadline;
   }
-
+//@>i in permits, owner approve spender to spend value
   struct Permit {
     address owner;
     address spender;
@@ -66,14 +67,14 @@ library EIP712Types {
     uint256 nonce;
     uint256 deadline;
   }
-
+//@>i updateUserRiskPremium and updateUerDynamicConfig 
   struct UpdateUserRiskPremium {
     address spoke;
     address user;
     uint256 nonce;
     uint256 deadline;
   }
-
+//@>q does this update user positions dynamic configs to the latest dynamic configs for all his reservs?
   struct UpdateUserDynamicConfig {
     address spoke;
     address user;

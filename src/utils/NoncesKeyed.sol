@@ -30,6 +30,7 @@ contract NoncesKeyed is INoncesKeyed {
   /// @notice Consumes the next unused nonce for an address and key.
   /// @dev Returns the current packed `keyNonce`. Consumed nonce is increased, so calling this function twice
   /// with the same arguments will return different (sequential) results.
+  //@>i returns The nonce value BEFORE incrementing (the current/used nonce)
   function _useNonce(address owner, uint192 key) internal returns (uint256) {
     // For each account, the nonce has an initial value of 0, can only be incremented by one, and cannot be
     // decremented or reset. This guarantees that the nonce never overflows.
@@ -42,7 +43,9 @@ contract NoncesKeyed is INoncesKeyed {
   /// @dev Same as `_useNonce` but checking that `nonce` is the next valid for `owner` for specified packed `keyNonce`.
   function _useCheckedNonce(address owner, uint256 keyNonce) internal {
     (uint192 key, ) = _unpack(keyNonce);
+    //@>i _useNonce increment nonce by 1 for the key 
     uint256 current = _useNonce(owner, key);
+    //@>i check if input keynonc equals to current used nonce
     require(keyNonce == current, InvalidAccountNonce(owner, current));
   }
 

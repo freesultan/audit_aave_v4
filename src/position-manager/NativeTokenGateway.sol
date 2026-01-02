@@ -86,7 +86,7 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
 
     //@>i withdraw withdraw from native token and send them to the sender
     _nativeWrapper.withdraw(withdrawnAmount);
-
+    //@>q why do they use Address.sendvalue in nativetokenGateway and safeTransfer in signatureGateway?
     Address.sendValue(payable(msg.sender), withdrawnAmount);
 
     return (withdrawnShares, withdrawnAmount);
