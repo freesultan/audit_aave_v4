@@ -7,6 +7,7 @@ import {IAccessManager} from 'src/dependencies/openzeppelin/IAccessManager.sol';
 /// @title IAccessManagerEnumerable
 /// @author Aave Labs
 /// @notice Interface for AccessManagerEnumerable extension.
+
 interface IAccessManagerEnumerable is IAccessManager {
   /// @notice Returns the address of the role member at a specified index.
   /// @param roleId The identifier of the role.

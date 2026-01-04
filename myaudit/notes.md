@@ -43,3 +43,5 @@ Supply share price and drawn index cannot decrease (remains constant or increase
 `Each reserve stores the latest configKey, which represents the current up-to-date risk configuration. In contrast, every user position retains a snapshot of the active configKey corresponding to the configuration in effect at the time of its last risk-increasing event. This snapshot is refreshed across all assets of a user position only when the user performs an action which elevates the risk posed to the system, such as disabling an asset as collateral, withdrawing, or borrowing. When a user designates a new asset as collateral, only the configKey snapshot of the asset in play is refreshed.`
 
 - This means we have more than one config and each user position has it's own config which was active scince his last risk-increasing interaction , but each reserve has the latest configKey
+
+## after Fusaka upgrade, the limit of block and TXs have decreased. this creates new opportunities for GAS DOS now

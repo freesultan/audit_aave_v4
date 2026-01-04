@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 
 import {SafeERC20, IERC20} from 'src/dependencies/openzeppelin/SafeERC20.sol';
 import {Address} from 'src/dependencies/openzeppelin/Address.sol';
+
 import {IRescuable} from 'src/interfaces/IRescuable.sol';
 
 /// @title Rescuable
@@ -11,6 +12,8 @@ import {IRescuable} from 'src/interfaces/IRescuable.sol';
 /// @notice Contract that allows for the rescue of tokens and native assets.
 abstract contract Rescuable is IRescuable {
   using SafeERC20 for IERC20;
+
+  //@>i contracts can become Rescubale where onlyRescueGuardain can rescue tokens or native tokens
 
   modifier onlyRescueGuardian() {
     _checkRescueGuardian();
@@ -24,6 +27,7 @@ abstract contract Rescuable is IRescuable {
 
   /// @inheritdoc IRescuable
   function rescueNative(address to, uint256 amount) external onlyRescueGuardian {
+    //@>i Address is used to send native token 
     Address.sendValue(payable(to), amount);
   }
 
