@@ -245,6 +245,7 @@ library LiquidationLogic {
 
   /// @notice Calculates the liquidation bonus at a given health factor.
   /// @dev Liquidation Bonus is expressed as a BPS value greater than `PercentageMath.PERCENTAGE_FACTOR`.
+  //@>i liquidation bonus > 10000
   /// @param healthFactorForMaxBonus The health factor for max bonus.
   /// @param liquidationBonusFactor The liquidation bonus factor.
   /// @param healthFactor The health factor.
@@ -256,6 +257,7 @@ library LiquidationLogic {
     uint256 healthFactor,
     uint256 maxLiquidationBonus
   ) internal pure returns (uint256) {
+
     if (healthFactor <= healthFactorForMaxBonus) {
       return maxLiquidationBonus;
     }
@@ -265,7 +267,7 @@ library LiquidationLogic {
 
     // linear interpolation between min and max
     // denominator cannot be zero as healthFactorForMaxBonus is always < HEALTH_FACTOR_LIQUIDATION_THRESHOLD
-    return
+    return //@>i return a number between minbonus and maxbonus
       minLiquidationBonus +
       (maxLiquidationBonus - minLiquidationBonus).mulDivDown(
         HEALTH_FACTOR_LIQUIDATION_THRESHOLD - healthFactor,

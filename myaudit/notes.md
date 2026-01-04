@@ -34,7 +34,7 @@ Supply share price and drawn index cannot decrease (remains constant or increase
 ## points 
 - Determines available actions — new borrows or collateral withdrawals `are blocked` if they would reduce the Health Factor below 1.0
 - can it be a dos chance?
-
+- 
 ## Dynamic config keys (Dynamic risk configuration)
 - With each change in configs (Collateral Factor, Liquidation bonus, Protocol fee), the new config adds to the last configs with new config key.
 - New positions use the new config but earlier positions continue to use old config
@@ -45,3 +45,4 @@ Supply share price and drawn index cannot decrease (remains constant or increase
 - This means we have more than one config and each user position has it's own config which was active scince his last risk-increasing interaction , but each reserve has the latest configKey
 
 ## after Fusaka upgrade, the limit of block and TXs have decreased. this creates new opportunities for GAS DOS now
+

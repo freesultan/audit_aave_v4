@@ -10,6 +10,10 @@ import {IAaveOracle, IPriceOracle} from 'src/spoke/interfaces/IAaveOracle.sol';
 /// @notice Provides reserve prices.
 /// @dev Oracles are spoke-specific, due to the usage of reserve id as index of the `_sources` mapping.
 contract AaveOracle is IAaveOracle {
+  
+  //@>i aaveOracle uses priceOracle which has only on getReservePrice funcion
+
+  //@>i each spoke has 1 aaveoracle which has a mapping of sources _sources[reserveId]
   /// @inheritdoc IPriceOracle
   address public immutable SPOKE;
 
@@ -39,6 +43,7 @@ contract AaveOracle is IAaveOracle {
     AggregatorV3Interface targetSource = AggregatorV3Interface(source);
     require(targetSource.decimals() == DECIMALS, InvalidSourceDecimals(reserveId));
     _sources[reserveId] = targetSource;
+    //@>i this is to test if what we are going to set works
     _getSourcePrice(reserveId);
     emit UpdateReserveSource(reserveId, source);
   }
@@ -66,12 +71,16 @@ contract AaveOracle is IAaveOracle {
 
   /// @dev Price of zero will revert with `InvalidPrice`.
   function _getSourcePrice(uint256 reserveId) internal view returns (uint256) {
+    //@>i this is the main function to get price from sources which are chainlink aggregators v3
     AggregatorV3Interface source = _sources[reserveId];
     require(address(source) != address(0), InvalidSource(reserveId));
 
     (, int256 price, , , ) = source.latestRoundData();
     require(price > 0, InvalidPrice(reserveId));
-
+    /* @>audit shouldn't they check these:
+    require(updatedAt >= block.timestamp - MAX_DELAY, "Stale price");
+   require(answeredInRound == roundId, "Invalid round");
+      */
     return uint256(price);
   }
 }

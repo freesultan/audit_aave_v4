@@ -7,7 +7,7 @@ import {SafeERC20, IERC20} from 'src/dependencies/openzeppelin/SafeERC20.sol';
 import {MathUtils} from 'src/libraries/math/MathUtils.sol';
 import {IHubBase} from 'src/hub/interfaces/IHubBase.sol';
 import {ITreasurySpoke, ISpokeBase} from 'src/spoke/interfaces/ITreasurySpoke.sol';
-
+//@>i Governance can supply assets to the hub and earn interest and withdraw afteward
 /// @title TreasurySpoke
 /// @author Aave Labs
 /// @notice Spoke contract used as a treasury where accumulated fees are treated as supplied assets.

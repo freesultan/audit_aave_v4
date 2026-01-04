@@ -92,10 +92,11 @@ interface ISpokeBase {
     uint256 collateralSharesToLiquidator
   );
 
+ 
   /// @notice Supplies an amount of underlying asset of the specified reserve.
   /// @dev It reverts if the reserve associated with the given reserve identifier is not listed.
   /// @dev The Spoke pulls the underlying asset from the caller, so prior token approval is required.
-  /// @dev Caller must be `onBehalfOf` or an authorized position manager for `onBehalfOf`.
+  /// @dev Caller must be `onBehalfOf` or an authorized position manager for `onBehalfOf`. //@>q users can directly call supply for themselves?
   /// @param reserveId The reserve identifier.
   /// @param amount The amount of asset to supply.
   /// @param onBehalfOf The owner of the position to add supply shares to.

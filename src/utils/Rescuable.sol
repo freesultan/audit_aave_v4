@@ -14,7 +14,7 @@ abstract contract Rescuable is IRescuable {
   using SafeERC20 for IERC20;
 
   //@>i contracts can become Rescubale where onlyRescueGuardain can rescue tokens or native tokens
-
+  //@>i only the Gateway owner who implements abstract GAtewayBase is RescueGaurdain and can rescue funds
   modifier onlyRescueGuardian() {
     _checkRescueGuardian();
     _;

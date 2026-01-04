@@ -35,7 +35,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
   using WadRayMath for *;
   using KeyValueList for KeyValueList.List;
   using LiquidationLogic for *;
-  using PositionStatusMap for *;
+  using PositionStatusMap for *; //@>i PositionStatusMap is a map of 128 assets in a slot(each 2 bits for collateral and borrowing)
   using ReserveFlagsMap for ReserveFlags;
   using UserPositionDebt for ISpoke.UserPosition;
 
@@ -110,24 +110,27 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
   /// @dev To be overridden by the inheriting Spoke instance contract.
   function initialize(address authority) external virtual;
 
+  //@>i each spoke has a liquidation config for itself
   /// @inheritdoc ISpoke
   function updateLiquidationConfig(LiquidationConfig calldata config) external restricted {
+
     require(
       config.targetHealthFactor >= HEALTH_FACTOR_LIQUIDATION_THRESHOLD &&
         config.liquidationBonusFactor <= PercentageMath.PERCENTAGE_FACTOR &&
         config.healthFactorForMaxBonus < HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
       InvalidLiquidationConfig()
     );
+
     _liquidationConfig = config;
     emit UpdateLiquidationConfig(config);
   }
-
+  //@>i add a reserve to the spoke
   /// @inheritdoc ISpoke
   function addReserve(
     address hub,
     uint256 assetId,
     address priceSource,
-    ReserveConfig calldata config,
+    ReserveConfig calldata config, //@>i collateralRisk, list of status bools: paused, frozen, borrowable,liquidatable, ...
     DynamicReserveConfig calldata dynamicConfig
   ) external restricted returns (uint256) {
     require(hub != address(0), InvalidAddress());
@@ -136,6 +139,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
 
     _validateReserveConfig(config);
     _validateDynamicReserveConfig(dynamicConfig);
+
     uint256 reserveId = _reserveCount++;
     uint24 dynamicConfigKey; // 0 as first key to use
 
@@ -143,7 +147,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     require(underlying != address(0), AssetNotListed());
 
     _updateReservePriceSource(reserveId, priceSource);
-
+    
     _reserves[reserveId] = Reserve({
       underlying: underlying,
       hub: IHubBase(hub),
@@ -159,6 +163,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
         initReceiveSharesEnabled: config.receiveSharesEnabled
       })
     });
+
     _dynamicConfig[reserveId][dynamicConfigKey] = dynamicConfig;
     _reserveExists[hub][assetId] = true;
 
@@ -236,7 +241,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
   ) external onlyPositionManager(onBehalfOf) returns (uint256, uint256) {
     Reserve storage reserve = _getReserve(reserveId);
     UserPosition storage userPosition = _userPositions[onBehalfOf][reserveId];
-    _validateSupply(reserve.flags);
+    _validateSupply(reserve.flags);//@>i Check reserve not paused/frozen
 
     IERC20(reserve.underlying).safeTransferFrom(msg.sender, address(reserve.hub), amount);
     uint256 suppliedShares = reserve.hub.add(reserve.assetId, amount);
@@ -246,7 +251,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     //@>i returns supplied shares and supplied amount 
     return (suppliedShares, amount);
   }
-  //@>q what's the iff between withdraw and borrow in spoke?
+  //@>q what's the diff between withdraw and borrow in spoke?
   /// @inheritdoc ISpokeBase
   function withdraw(
     uint256 reserveId,
@@ -259,6 +264,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     UserPosition storage userPosition = _userPositions[onBehalfOf][reserveId];
 
     _validateWithdraw(reserve.flags);
+    
     IHubBase hub = reserve.hub;
     uint256 assetId = reserve.assetId;
 
@@ -976,6 +982,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
   /// @dev Enforces compatible `maxLiquidationBonus` and `collateralFactor` so at the moment debt is created
   /// there is enough collateral to cover liquidation.
   function _validateDynamicReserveConfig(DynamicReserveConfig calldata config) internal pure {
+    //@>i PercentageMath.PERCENTAGE_FACTOR = 10000 or 1e4
     require(
       config.collateralFactor < PercentageMath.PERCENTAGE_FACTOR &&
         config.maxLiquidationBonus >= PercentageMath.PERCENTAGE_FACTOR &&

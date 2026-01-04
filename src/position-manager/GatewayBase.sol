@@ -12,6 +12,8 @@ import {IGatewayBase} from 'src/position-manager/interfaces/IGatewayBase.sol';
 /// @author Aave Labs
 /// @notice Base implementation for gateway common functionalities.
 abstract contract GatewayBase is IGatewayBase, Rescuable, Ownable2Step {
+
+  //@>i 
   mapping(address => bool) internal _registeredSpokes;
 
   /// @notice Modifier that checks if the specified spoke is registered.

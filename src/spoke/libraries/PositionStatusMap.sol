@@ -2,9 +2,24 @@
 // Copyright (c) 2025 Aave Labs
 pragma solidity ^0.8.20;
 
-import {LibBit} from 'src/dependencies/solady/LibBit.sol';
-import {ISpoke} from 'src/spoke/interfaces/ISpoke.sol';
 
+import {LibBit} from 'src/dependencies/solady/LibBit.sol';
+//@>i LibBit provids popcount() and fls() for number of 1 in a bitarray and the fls for highest position 1
+/* @>i example of libbit
+
+// Efficient tiered rewards calculation
+uint256 stakedAmount = 1500; // e.g., 1500 tokens
+uint256 tier = LibBit.fls(stakedAmount / 100); // Which 100-token tier
+// Returns 3 for 1500 (bits: ...00001000 = position 3)
+
+*/
+
+import {ISpoke} from 'src/spoke/interfaces/ISpoke.sol';
+//@>i main use case: track which assets a user is borrowing AND/OR using as collateral using bitmaps instead of mappings to save massive gas
+//@>i Every reserve has 2 bits (0 for borrowing, 1 for collateral)
+//@>i if a user use ETH as collateral and borrow it both bits are 1 like [1,1]
+//@>i can track 128 assets with only one slot(which is 256 bits) without any loops by popcount() and fls() functions
+//@>i example: 0011 0001 means 01 is USDC with borrowing bit set and Eth with both bits set
 /// @title PositionStatusMap Library
 /// @author Aave Labs
 /// @notice Implements the bitmap logic to handle the user configuration.
@@ -19,8 +34,13 @@ library PositionStatusMap {
   uint256 internal constant COLLATERAL_MASK =
     0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA;
 
+  //@>i  Toggle borrowing status (bit 0)
   /// @notice Sets if the user is borrowing the specified reserve.
   function setBorrowing(
+    /* @>i  struct PositionStatus {
+    mapping(uint256 bucket => uint256) map;
+    uint24 riskPremium;
+  } */
     ISpoke.PositionStatus storage self,
     uint256 reserveId,
     bool borrowing
@@ -34,7 +54,7 @@ library PositionStatusMap {
       }
     }
   }
-
+ //@>i Toggle collateral status (bit 1)
   /// @notice Sets if the user is using as collateral the specified reserve.
   function setUsingAsCollateral(
     ISpoke.PositionStatus storage self,
@@ -181,7 +201,7 @@ library PositionStatusMap {
       wordId := shr(7, reserveId)
     }
   }
-
+ 
   /// @notice Converts a bit index to its corresponding reserve index in the bitmap.
   /// @dev BitId 0, 1 correspond to reserveId 0; BitId 2, 3 correspond to reserveId 1; etc.
   function fromBitId(uint256 bitId, uint256 bucket) internal pure returns (uint256 reserveId) {

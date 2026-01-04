@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 // Copyright (c) 2025 Aave Labs
 pragma solidity ^0.8.20;
-
+//@>i this Premium contract uses safeCase from OZ, why dn't others use this? they have to manage it themselves
 import {SafeCast} from 'src/dependencies/openzeppelin/SafeCast.sol';
 
 /// @title Premium library
@@ -20,6 +20,7 @@ library Premium {
     int256 premiumOffsetRay,
     uint256 drawnIndex
   ) internal pure returns (uint256) {
+    //@>i primiumShares x drawnIndex - premiumOffsetRay
     return ((premiumShares * drawnIndex).toInt256() - premiumOffsetRay).toUint256();
   }
 }

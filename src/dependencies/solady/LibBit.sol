@@ -7,6 +7,7 @@ pragma solidity ^0.8.4;
 /// @author Solady (https://github.com/vectorized/solady/blob/main/src/utils/LibBit.sol)
 /// @author Inspired by (https://graphics.stanford.edu/~seander/bithacks.html)
 library LibBit {
+  //@>i Counts how many bits are 1 in a 256-bit number
   /// @dev Returns the number of set bits in `x`.
   function popCount(uint256 x) internal pure returns (uint256 c) {
     /// @solidity memory-safe-assembly
@@ -19,7 +20,7 @@ library LibBit {
       c := or(shl(8, isMax), shr(248, mul(x, div(max, 255))))
     }
   }
-
+  //@>i  Finds highest-position 1 bit (0 = LSB, 255 = MSB)
   /// @dev Find last set.
   /// Returns the index of the most significant bit of `x`,
   /// counting from the least significant bit position.

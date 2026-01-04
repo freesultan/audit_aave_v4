@@ -30,7 +30,7 @@ interface ISpoke is ISpokeBase, IMulticall, INoncesKeyed, IAccessManaged {
     uint8 decimals;
     uint24 dynamicConfigKey;
     uint24 collateralRisk;
-    ReserveFlags flags; //@>q what are these flags 00000000
+    ReserveFlags flags; //@>i 00000000. only 5 bits is used for 000{receiveSharesEnabled}{liquidateble}{borrowable}{frozen}{paused}
   }
 
   /// @notice Reserve configuration. Subset of the `Reserve` struct.

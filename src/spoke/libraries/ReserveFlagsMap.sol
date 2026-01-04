@@ -1,8 +1,27 @@
 // SPDX-License-Identifier: UNLICENSED
 // Copyright (c) 2025 Aave Labs
 pragma solidity ^0.8.20;
-
+//@>i reserverFlags is just a uint8 type: 00000000
 import {ReserveFlags} from 'src/spoke/interfaces/ISpoke.sol';
+
+/* @>i overview
+// Each asset reserve stores these 5 flags in ONE BYTE:
+uint8 flags = 0x00; // 00000000 (8 bits available, using 5)
+
+// Bits represent:
+Bit 0 (0x01): paused          - 1=All actions stopped
+Bit 1 (0x02): frozen          - 1=Only withdrawals allowed  
+Bit 2 (0x04): borrowable      - 1=Can be borrowed
+Bit 3 (0x08): liquidatable    - 1=Can be liquidated
+Bit 4 (0x10): receiveSharesEnabled - 1=Receives aTokens
+
+Normal operation: 0x0C (00001100) = borrowable + liquidatable
+Emergency: 0x01 (00000001) = paused ONLY
+Freeze only: 0x02 (00000010) = frozen ONLY
+Recovery: 0x0C (00001100) = back to normal
+
+
+*/
 
 /// @title ReserveFlags Library
 /// @author Aave Labs

@@ -10,6 +10,8 @@ import {Premium} from 'src/hub/libraries/Premium.sol';
 import {IHubBase} from 'src/hub/interfaces/IHubBase.sol';
 import {ISpoke} from 'src/spoke/interfaces/ISpoke.sol';
 
+//@>i this library calculates drawnShares and premiumShares(interest)
+
 /// @title User Debt library
 /// @author Aave Labs
 /// @notice Implements debt calculations for user positions.
@@ -20,9 +22,18 @@ library UserPositionDebt {
   using WadRayMath for *;
   using MathUtils for *;
 
+  /* @>i each user position
+    uint120 drawnShares;     // Principal borrowed (scaled by drawnIndex)
+    uint120 premiumShares;   // Risk premium shares (interest portion)
+    int200 premiumOffsetRay; // Adjusts premium calculation (RAY precision)
+  */
+ //@>i Risk Premium: Extra interest for riskier positions (in BPS)
+
+
   /// @notice Applies the premium delta to the user position.
   /// @param userPosition The user position.
   /// @param premiumDelta The premium delta to apply.
+  //@>i premiumDelta {sharesDelta,offsetRayDelta}
   function applyPremiumDelta(
     ISpoke.UserPosition storage userPosition,
     IHubBase.PremiumDelta memory premiumDelta
@@ -44,10 +55,10 @@ library UserPositionDebt {
   /// @return The calculated premium delta.
   function getPremiumDelta(
     ISpoke.UserPosition storage userPosition,
-    uint256 drawnSharesTaken,
+    uint256 drawnSharesTaken,//@>i Liquidated amount
     uint256 drawnIndex,
-    uint256 riskPremium,
-    uint256 restoredPremiumRay
+    uint256 riskPremium, //@>i new risk premium
+    uint256 restoredPremiumRay //@>i // Repaid interest
   ) internal view returns (IHubBase.PremiumDelta memory) {
     uint256 oldPremiumShares = userPosition.premiumShares;
     int256 oldPremiumOffsetRay = userPosition.premiumOffsetRay;

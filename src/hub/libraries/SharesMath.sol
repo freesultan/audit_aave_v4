@@ -3,7 +3,10 @@
 pragma solidity ^0.8.20;
 
 import {MathUtils} from 'src/libraries/math/MathUtils.sol';
-
+//@>i this is the frontline faceing share manipulation attackes (utilizes virtual assets and shares) 
+//@>i This means adding 1e6 to share and assets in calculations
+//@>i assets/totalassets = shares/totalshares => assets = shares x totalassets/totalshares
+//@>i assets/totalassets = shares/totalshares => shares = assets x totalshares/totalassets
 /// @title SharesMath library
 /// @author Aave Labs
 /// @notice Implements the logic to convert between assets and shares.
@@ -20,6 +23,7 @@ library SharesMath {
     uint256 totalAssets,
     uint256 totalShares
   ) internal pure returns (uint256) {
+    //@>i shares = assets x totalshares / totalassets
     return assets.mulDivDown(totalShares + VIRTUAL_SHARES, totalAssets + VIRTUAL_ASSETS);
   }
 
@@ -29,6 +33,7 @@ library SharesMath {
     uint256 totalAssets,
     uint256 totalShares
   ) internal pure returns (uint256) {
+    //@>i assets = shares x totalassets / totalshares
     return shares.mulDivDown(totalAssets + VIRTUAL_ASSETS, totalShares + VIRTUAL_SHARES);
   }
 

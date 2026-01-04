@@ -22,7 +22,10 @@ interface AggregatorV3Interface {
       uint256 updatedAt,
       uint80 answeredInRound
     );
-
+//@>i this is the most used function from chainlink for current price
+/* @>i
+ Always check updatedAt timestamp and ensure answeredInRound == roundId to prevent stale/manipulated prices
+*/
   function latestRoundData()
     external
     view

@@ -5,6 +5,7 @@ pragma solidity ^0.8.20;
 /// @title MathUtils library
 /// @author Aave Labs
 library MathUtils {
+  //@>i RAY mean 1e27
   uint256 internal constant RAY = 1e27;
   /// @dev Ignoring leap years
   uint256 internal constant SECONDS_PER_YEAR = 365 days;
@@ -18,6 +19,8 @@ library MathUtils {
     uint96 rate,
     uint40 lastUpdateTimestamp
   ) internal view returns (uint256 result) {
+    //@>i this tells compiler that this block is memory-safe
+    //@>i interest rate in a time period in RAY units = 1 + (rate x deltaTime) / 1Year in seconds
     assembly ('memory-safe') {
       if gt(lastUpdateTimestamp, timestamp()) {
         revert(0, 0)
@@ -34,6 +37,7 @@ library MathUtils {
     }
   }
 
+  //@>check: this add function should use correctly as it used for signed and unsigned addition
   /// @notice Returns the sum of an unsigned and signed integer.
   /// @dev Reverts on underflow.
   function add(uint256 a, int256 b) internal pure returns (uint256) {
@@ -63,6 +67,7 @@ library MathUtils {
     }
   }
 
+  //@>i compound interest formula: principal x (1 + rate) ^ timeDelta
   /// @notice Raises an unsigned integer to the power of an unsigned integer.
   /// @dev Does not revert on overflow.
   function uncheckedExp(uint256 a, uint256 b) internal pure returns (uint256) {
