@@ -10,7 +10,7 @@ import {IMulticall} from 'src/interfaces/IMulticall.sol';
 /// @dev Inspired by the OpenZeppelin Multicall contract.
 abstract contract Multicall is IMulticall {
   //@>i Call multiple functions in the current contract and return the data from each if they all succeed
-  //@>q who uses this multical in the protocol? if no one, external user can call this?
+  //@>q who uses this multical in the protocol? if no one, external user can call this? the spoke
   /// @inheritdoc IMulticall
   function multicall(bytes[] calldata data) external returns (bytes[] memory) {
     //@>q how does this function work deeply? how do users call this? can they?

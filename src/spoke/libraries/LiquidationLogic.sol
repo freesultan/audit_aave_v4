@@ -379,6 +379,8 @@ library LiquidationLogic {
     }
   }
 
+
+  //@>i the core of the liquidation math happens here
   /// @notice Calculates the liquidation amounts.
   /// @dev Invoked by `liquidateUser` method.
   function _calculateLiquidationAmounts(

@@ -970,6 +970,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
 
   /// @notice Returns whether `manager` is active & approved positionManager for `user`.
   function _isPositionManager(address user, address manager) internal view returns (bool) {
+    //@>i if user is manager himself, return true
     if (user == manager) return true;
     PositionManagerConfig storage config = _positionManager[manager];
     return config.active && config.approval[user];
