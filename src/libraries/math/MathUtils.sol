@@ -5,7 +5,7 @@ pragma solidity ^0.8.20;
 /// @title MathUtils library
 /// @author Aave Labs
 library MathUtils {
-  //@>i RAY mean 1e27
+  //@>i RAY means 1e27
   uint256 internal constant RAY = 1e27;
   /// @dev Ignoring leap years
   uint256 internal constant SECONDS_PER_YEAR = 365 days;
@@ -37,7 +37,6 @@ library MathUtils {
     }
   }
 
-  //@>check: this add function should use correctly as it used for signed and unsigned addition
   /// @notice Returns the sum of an unsigned and signed integer.
   /// @dev Reverts on underflow.
   function add(uint256 a, int256 b) internal pure returns (uint256) {

@@ -3,6 +3,7 @@
 pragma solidity 0.8.28;
 
 import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
+//@>i calcualte interest rate and set interest rate data in BasicInterestRateStrategy
 import {IAssetInterestRateStrategy, IBasicInterestRateStrategy} from 'src/hub/interfaces/IAssetInterestRateStrategy.sol';
 
 /// @title AssetInterestRateStrategy
@@ -11,7 +12,7 @@ import {IAssetInterestRateStrategy, IBasicInterestRateStrategy} from 'src/hub/in
 /// @dev Strategies are Hub-specific, due to the usage of asset identifier as index of the `_interestRateData` mapping.
 contract AssetInterestRateStrategy is IAssetInterestRateStrategy {
   using WadRayMath for *;
-
+  //@>i base + slope1 + slope2 must be <= MAX_BORROW_RATE (1000% APR)
   /// @inheritdoc IAssetInterestRateStrategy
   uint256 public constant MAX_BORROW_RATE = 1000_00;
 
@@ -34,6 +35,7 @@ contract AssetInterestRateStrategy is IAssetInterestRateStrategy {
     HUB = hub_;
   }
 
+  //@>i only hub can set interest rate data for an asset
   /// @notice Sets the interest rate parameters for a specified asset.
   /// @param assetId The identifier of the asset.
   /// @param data The encoded parameters containing BPS data used to configure the interest rate of the asset.

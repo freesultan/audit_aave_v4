@@ -4,7 +4,6 @@ pragma solidity 0.8.28;
 //@>i this is just used for test
 import {AggregatorV3Interface} from 'src/dependencies/chainlink/AggregatorV3Interface.sol';
 //@>i this aave unitpriceFeed uses chainlink aggregatorV3 to get current price
-//@>check roundId == answeredInround and check updatedAt
 /// @title UnitPriceFeed contract
 /// @author Aave Labs
 /// @notice Price feed that returns the unit price (1), with decimals precision.

@@ -251,7 +251,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     //@>i returns supplied shares and supplied amount 
     return (suppliedShares, amount);
   }
-  //@>q what's the diff between withdraw and borrow in spoke?
+   //@>i get back your collateral 
   /// @inheritdoc ISpokeBase
   function withdraw(
     uint256 reserveId,
@@ -285,7 +285,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
 
     return (withdrawnShares, withdrawnAmount);
   }
-
+  //@>i you get load if you have collateral and if asset not paused/frozen and it's borrowable
   /// @inheritdoc ISpokeBase
   function borrow(
     uint256 reserveId,
@@ -362,8 +362,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     uint256 debtToCover,
     bool receiveShares
   ) external {
-    //@>q If orders are deleted, where do the locked funds go? 
-    //@>q Does the code delete/cancel pending orders before calculating the final liquidation amount?
+     //@>q Does the code delete/cancel pending orders before calculating the final liquidation amount?
     Reserve storage collateralReserve = _getReserve(collateralReserveId);
     //@>i example collateralReserve = Reserve{hub: Hub, assetId: 10, underlying: WETH, decimals: 18, ...}
     Reserve storage debtReserve = _getReserve(debtReserveId);
@@ -409,7 +408,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
 
     uint256 newRiskPremium = 0;
     if (isUserInDeficit) {
-      _reportDeficit(user);
+      _reportDeficit(user);//@>i clear all remaining dept
     } else {
       newRiskPremium = _calculateUserAccountData(user).riskPremium;
     }
@@ -760,10 +759,16 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     PositionStatus storage positionStatus = _positionStatus[user];
 
     uint256 reserveId = _reserveCount;
-
+    //@>i keyvaluelist used to sort collaterals by risk 
     KeyValueList.List memory collateralInfo = KeyValueList.init(
       positionStatus.collateralCount(reserveId)
     );
+    //@>i collateralInfo is a temp list of (collateralRisk, userCollateralValue) pairs
+    //@>i collateralRisk is in BPS (e.g. 100_00 is 100.00%)
+    //@>i collaterals are sorted by collateralRisk in ASC, then userCollateralValue in DESC
+    //@>i collaterals used to cover dept from lowest risk to highest risk
+
+     //@>i total rate = base rate + market rate + user risk premium(sum of collateral weighted risk premiums = sum (collateralRisk * userCollateralValue used to cover debt))
     bool borrowing;
     bool collateral;
     while (true) {

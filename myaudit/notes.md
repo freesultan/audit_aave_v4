@@ -1,17 +1,24 @@
-# aave v4 
+# aave v4
+
 ## excalidraw whiteboard
+
 [whiteboard](https://excalidraw.com/#json=uArLdwspLNqyTeyjKZksd,xgbalUTHpyC5_5OeJyZnxQ)
+
 ## Always read comments if there is refs to other protocols check if there is a problem (check forked from protocols)
+
 ## focus on pattern detection
-drawnIndex(t) = drawnIndex(t-1) × (1 + drawnRate × Δtime)     
+
+drawnIndex(t) = drawnIndex(t-1) × (1 + drawnRate × Δtime)  
 drawnRate = draw/borrow interest rate in a second
 
 ## position manager roles
-- user can set a position manager as approved 
+
+- user can set a position manager as approved
 - a position manager can renounce the approval of users who has approved
-- Big note: PMs have full control on users positions. 2 position managers are introduced by the protocol but any PM can be used by users although they should be approved by Governance 
+- Big note: PMs have full control on users positions. 2 position managers are introduced by the protocol but any PM can be used by users although they should be approved by Governance
 
 ## Invariants
+
 ```console
 Invariants at the the Hub level:
 
@@ -23,19 +30,24 @@ Supply share price and drawn index cannot decrease (remains constant or increase
 ```
 
 ### Questions
+
 - How procotol manage risk config logic with Spokes?
 - where do donations occure in spokes?
 
 ## EIP 712 meta transactions
-- we use this eip in signatureGateway and  setUserPositionManagerWithSig
+
+- we use this eip in signatureGateway and setUserPositionManagerWithSig
 
 ## Gas optimization is in scope
 
-## points 
+## points
+
 - Determines available actions — new borrows or collateral withdrawals `are blocked` if they would reduce the Health Factor below 1.0
 - can it be a dos chance?
-- 
+-
+
 ## Dynamic config keys (Dynamic risk configuration)
+
 - With each change in configs (Collateral Factor, Liquidation bonus, Protocol fee), the new config adds to the last configs with new config key.
 - New positions use the new config but earlier positions continue to use old config
 - Each reserver retains the latest `configKey` but every user position keeps snapshot of active `configKey` at the time of its last risk-increasing event (remove collateral, get loan)
@@ -46,3 +58,13 @@ Supply share price and drawn index cannot decrease (remains constant or increase
 
 ## after Fusaka upgrade, the limit of block and TXs have decreased. this creates new opportunities for GAS DOS now
 
+## how multicall works? i
+
+```solidity
+bytes[] calls = new bytes()[3];
+calls[0] = abi.encodeWithSignature("function1(uint256)", 234);
+calls[1] = abi.encodeWithSignature("function2(address)", userAddress);
+calls[3] = abi.encodeWithsignature("function3()");
+
+signatureGateway.multicall(calls);
+```

@@ -13,6 +13,7 @@ import {MathUtils} from 'src/libraries/math/MathUtils.sol';
 import {NoncesKeyed} from 'src/utils/NoncesKeyed.sol';
 //@>q check multicall. it can the source of a bug as in multicalls if the multical reverts the signature of some calls may remain valid and suseptible to replay attack
 import {Multicall} from 'src/utils/Multicall.sol';
+//@>audit: Everyone can call multical function through this contract.
 
 //@>i EIP712Types are structs for function parameters like withdraw, borrow, ...
 //@>i EIP712Hash hash functioni for function parameters which get params as eip712types and return hash of hashconstant + parameters

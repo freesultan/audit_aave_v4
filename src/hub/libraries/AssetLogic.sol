@@ -210,6 +210,8 @@ library AssetLogic {
       drawnIndex: previousIndex
     });
 
+
+    //@>i dept growth x liquidityFee / 10000
     return
       (aggregatedOwedRayAfter.fromRayUp() - aggregatedOwedRayBefore.fromRayUp()).percentMulDown(
         liquidityFee

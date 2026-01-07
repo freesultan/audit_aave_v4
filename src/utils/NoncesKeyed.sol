@@ -3,10 +3,10 @@
 pragma solidity ^0.8.20;
 
 import {INoncesKeyed} from 'src/interfaces/INoncesKeyed.sol';
-//@>q this is forked from OZ NoncesKeyed. check if the differences create new vulnerabilites?
+//@>i this is forked from OZ NoncesKeyed. check if the differences create new vulnerabilites? with some modifications but safe
 /// @notice Provides tracking nonces for addresses. Supports key-ed nonces, where nonces will only increment for each key.
 /// @author Modified from OpenZeppelin https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v5.2.0/contracts/utils/NoncesKeyed.sol
-//@>q this implementation try to impelement eip4337. check if they are doing it right?
+//@>i this implementation try to impelement eip4337. check if they are doing it right? checked by AI seems safe
 /// @dev Follows the https://eips.ethereum.org/EIPS/eip-4337#semi-abstracted-nonce-support[ERC-4337's semi-abstracted nonce system].
 
 contract NoncesKeyed is INoncesKeyed {

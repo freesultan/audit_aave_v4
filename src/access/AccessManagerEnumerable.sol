@@ -6,8 +6,8 @@ import {AccessManager} from 'src/dependencies/openzeppelin/AccessManager.sol';
 import {EnumerableSet} from 'src/dependencies/openzeppelin/EnumerableSet.sol';
 
 import {IAccessManagerEnumerable} from 'src/access/interfaces/IAccessManagerEnumerable.sol';
-//@>q how this contract forked from AccessManager?
-//@>q where in the protocol does the contracts or users use this contract?
+//@>i how this contract forked from AccessManager? not important, this is only used in tests
+//@>i where in the protocol does the contracts or users use this contract? ONLY in tests
 /// @title AccessManagerEnumerable
 /// @author Aave Labs
 /// @notice Extension of AccessManager that tracks role members and their function selectors using EnumerableSet.
