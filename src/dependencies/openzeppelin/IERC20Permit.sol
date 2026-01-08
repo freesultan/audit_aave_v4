@@ -40,7 +40,7 @@ pragma solidity >=0.4.16;
  * contracts should have entry points that don't rely on permit.
  */
 interface IERC20Permit {
-  /*@>q what is this issue? study is.
+  /* 
 IMPORTANT: The same issues {IERC20-approve} has related to transaction
    * ordering also apply here
   */

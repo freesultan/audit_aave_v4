@@ -218,7 +218,7 @@ contract Hub is IHub, AccessManaged {
   function add(uint256 assetId, uint256 amount) external returns (uint256) {
     //@>i add liquidity to the hub for a specific asset on behalf of a user. The function updates the asset's state, validates the addition, calculates shares, and emits an event.
     Asset storage asset = _assets[assetId];
-    //@>i get spoke data for msg.sender(a spoke) //@>q what if is not a spoke? it will fail in _validateAdd
+    //@>i get spoke data for msg.sender(a spoke) 
     SpokeData storage spoke = _spokes[assetId][msg.sender];
    //@>i updates drawnIndex, realizedFees, lastUpdateTimestamp
     asset.accrue();
@@ -234,7 +234,7 @@ contract Hub is IHub, AccessManaged {
     asset.addedShares += shares;
     spoke.addedShares += shares;
     asset.liquidity = liquidity.toUint120();
-
+   
     asset.updateDrawnRate(assetId);
 
     emit Add(assetId, msg.sender, shares, amount);

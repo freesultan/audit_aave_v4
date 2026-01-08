@@ -50,8 +50,7 @@ This is a Solidity library called `KeyValueList` that efficiently packs key-valu
 - `gtComparator(uint256 a, uint256 b)`: Returns `a > b`, used for descending sort.
 */
 import {Arrays} from 'src/dependencies/openzeppelin/Arrays.sol';
-//@>q does this function calculate key values conrrectly? 
-/// @title KeyValueList Library
+ /// @title KeyValueList Library
 /// @author Aave Labs
 /// @notice Library to pack key-value pairs in a list.
 /// @dev The `sortByKey` helper sorts by ascending order of the `key` & in case of collision by descending order of the `value`.

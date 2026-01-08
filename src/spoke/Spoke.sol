@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 // Copyright (c) 2025 Aave Labs
 pragma solidity 0.8.28;
+import {console} from 'forge-std/console.sol';
 
 import {SafeCast} from 'src/dependencies/openzeppelin/SafeCast.sol';
 import {SafeERC20, IERC20} from 'src/dependencies/openzeppelin/SafeERC20.sol';
@@ -241,10 +242,12 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
   ) external onlyPositionManager(onBehalfOf) returns (uint256, uint256) {
     Reserve storage reserve = _getReserve(reserveId);
     UserPosition storage userPosition = _userPositions[onBehalfOf][reserveId];
+
     _validateSupply(reserve.flags);//@>i Check reserve not paused/frozen
 
     IERC20(reserve.underlying).safeTransferFrom(msg.sender, address(reserve.hub), amount);
     uint256 suppliedShares = reserve.hub.add(reserve.assetId, amount);
+
     userPosition.suppliedShares += suppliedShares.toUint120();
 
     emit Supply(reserveId, msg.sender, onBehalfOf, suppliedShares, amount);
@@ -354,66 +357,65 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     return (restoredShares, totalDebtRestored);
   }
 
-  /// @inheritdoc ISpokeBase
-  function liquidationCall(
-    uint256 collateralReserveId,
-    uint256 debtReserveId,
-    address user,
-    uint256 debtToCover,
-    bool receiveShares
-  ) external {
-     //@>q Does the code delete/cancel pending orders before calculating the final liquidation amount?
-    Reserve storage collateralReserve = _getReserve(collateralReserveId);
-    //@>i example collateralReserve = Reserve{hub: Hub, assetId: 10, underlying: WETH, decimals: 18, ...}
-    Reserve storage debtReserve = _getReserve(debtReserveId);
+    /// @inheritdoc ISpokeBase
+    function liquidationCall(
+      uint256 collateralReserveId,
+      uint256 debtReserveId,
+      address user,
+      uint256 debtToCover,
+      bool receiveShares
+    ) external {
+      Reserve storage collateralReserve = _getReserve(collateralReserveId);
+      //@>i example collateralReserve = Reserve{hub: Hub, assetId: 10, underlying: WETH, decimals: 18, ...}
+      Reserve storage debtReserve = _getReserve(debtReserveId);
 
-    DynamicReserveConfig storage collateralDynConfig = _dynamicConfig[collateralReserveId][
-      _userPositions[user][collateralReserveId].dynamicConfigKey
-    ];
-    //@>i example:  collateralDynConfig = DynamicReserveConfig{collateralFactor: 8000, maxLiquidationBonus: 11000, liquidationFee: 500}
+      DynamicReserveConfig storage collateralDynConfig = _dynamicConfig[collateralReserveId][
+        _userPositions[user][collateralReserveId].dynamicConfigKey
+      ];
+      //@>i example:  collateralDynConfig = DynamicReserveConfig{collateralFactor: 8000, maxLiquidationBonus: 11000, liquidationFee: 500}
 
-    UserAccountData memory userAccountData = _calculateUserAccountData(user);
+      UserAccountData memory userAccountData = _calculateUserAccountData(user);
 
-    uint256 drawnIndex = debtReserve.hub.getAssetDrawnIndex(debtReserve.assetId);
-    (uint256 drawnDebt, uint256 premiumDebtRay) = _userPositions[user][debtReserveId].getDebt(
-      drawnIndex
-    );
+      uint256 drawnIndex = debtReserve.hub.getAssetDrawnIndex(debtReserve.assetId);
+      (uint256 drawnDebt, uint256 premiumDebtRay) = _userPositions[user][debtReserveId].getDebt(
+        drawnIndex
+      );
 
-    LiquidationLogic.LiquidateUserParams memory params = LiquidationLogic.LiquidateUserParams({
-      collateralReserveId: collateralReserveId,
-      debtReserveId: debtReserveId,
-      oracle: ORACLE,
-      user: user,
-      debtToCover: debtToCover,
-      healthFactor: userAccountData.healthFactor,
-      drawnDebt: drawnDebt,
-      premiumDebtRay: premiumDebtRay,
-      drawnIndex: drawnIndex,
-      totalDebtValue: userAccountData.totalDebtValue,
-      activeCollateralCount: userAccountData.activeCollateralCount,
-      borrowedCount: userAccountData.borrowedCount,
-      liquidator: msg.sender,
-      receiveShares: receiveShares
-    });
+      LiquidationLogic.LiquidateUserParams memory params = LiquidationLogic.LiquidateUserParams({
+        collateralReserveId: collateralReserveId,
+        debtReserveId: debtReserveId,
+        oracle: ORACLE,
+        user: user,
+        debtToCover: debtToCover,
+        healthFactor: userAccountData.healthFactor,
+        drawnDebt: drawnDebt,
+        premiumDebtRay: premiumDebtRay,
+        drawnIndex: drawnIndex,
+        totalDebtValue: userAccountData.totalDebtValue,
+        activeCollateralCount: userAccountData.activeCollateralCount,
+        borrowedCount: userAccountData.borrowedCount,
+        liquidator: msg.sender,
+        receiveShares: receiveShares
+      });
 
-    bool isUserInDeficit = LiquidationLogic.liquidateUser(
-      collateralReserve,
-      debtReserve,
-      _userPositions,
-      _positionStatus,
-      _liquidationConfig,
-      collateralDynConfig,
-      params
-    );
+      bool isUserInDeficit = LiquidationLogic.liquidateUser(
+        collateralReserve,
+        debtReserve,
+        _userPositions,//
+        _positionStatus,//@>i position status map for user (shows all his collateral and borrowing reserves)
+        _liquidationConfig,
+        collateralDynConfig,
+        params
+      );
 
-    uint256 newRiskPremium = 0;
-    if (isUserInDeficit) {
-      _reportDeficit(user);//@>i clear all remaining dept
-    } else {
-      newRiskPremium = _calculateUserAccountData(user).riskPremium;
+      uint256 newRiskPremium = 0;
+      if (isUserInDeficit) {
+        _reportDeficit(user);//@>i clear all remaining dept
+      } else {
+        newRiskPremium = _calculateUserAccountData(user).riskPremium;
+      }
+      _notifyRiskPremiumUpdate(user, newRiskPremium);
     }
-    _notifyRiskPremiumUpdate(user, newRiskPremium);
-  }
 
   /// @inheritdoc ISpoke
   function setUsingAsCollateral(
@@ -443,11 +445,19 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     emit SetUsingAsCollateral(reserveId, msg.sender, onBehalfOf, usingAsCollateral);
   }
 
+
+
+  /*@>i 
+  updateUserRiskPremium = "Update my risk based on current market conditions"
+
+updateUserDynamicConfig = "Update my account to use the latest protocol parameters"
+  */
+
   /// @inheritdoc ISpoke
   function updateUserRiskPremium(address onBehalfOf) external {
     //@>i check if PM is active and approved for user
     if (!_isPositionManager({user: onBehalfOf, manager: msg.sender})) {
-      //@>i! this is an Openzeppline contract AccessManagedUpgradeable. check it
+      //@>i this is an Openzeppline contract AccessManagedUpgradeable. check it
       _checkCanCall(msg.sender, msg.data);
     }
     //@>i calculates the user account data with the current user dynamic config
@@ -456,6 +466,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     _notifyRiskPremiumUpdate(onBehalfOf, newRiskPremium);
   }
 
+ //@>i update user dynamic config for all his collateral reserves to the latest dynamic config for each reserve
   /// @inheritdoc ISpoke
   function updateUserDynamicConfig(address onBehalfOf) external {
     if (!_isPositionManager({user: onBehalfOf, manager: msg.sender})) {
@@ -481,7 +492,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     uint256 deadline,
     bytes calldata signature
   ) external {
-    //@>q why should someone use this when he can simply call setuserpositionmanager? check this
+    //@>i why should someone use this when he can simply call setuserpositionmanager? This is a UX feture 
     require(block.timestamp <= deadline, InvalidSignature());
     bytes32 digest = _hashTypedData(
       keccak256(
@@ -503,7 +514,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
  
   /// @inheritdoc ISpoke
   function renouncePositionManagerRole(address onBehalfOf) external {
-   //@>i! every PM can false approval for a user who has approved PM 
+     //@>i every PM can false approval for a user who has approved PM 
     if (!_positionManager[msg.sender].approval[onBehalfOf]) {
       return;
     }
@@ -511,7 +522,17 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     emit SetUserPositionManager(onBehalfOf, msg.sender, false);
   }
 
-  //@>q how does permitREserver work? what are permits?
+  //@>i a user can permit the spoke to spend his tokens on his behalf offchain like this:
+  /*@>i 
+  // Single transaction with multicall:
+    multicall([
+        permitReserve(USDC, ...),  // Approve USDC
+        permitReserve(WETH, ...),   // Approve WETH  
+        supply(USDC, ...),
+        borrow(WETH, ...)
+    ])
+
+  */
   /// @inheritdoc ISpoke
   function permitReserve(
     uint256 reserveId,
@@ -525,6 +546,9 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
     Reserve storage reserve = _reserves[reserveId];
     address underlying = reserve.underlying;
     require(underlying != address(0), ReserveNotListed());
+    //@>i it uses try/catch beacuse not all erc20 tokens support permit and revert silently if not supported
+    //@>i even if the permit fails the transaction continues
+    //@>audit a grieffing attack by frontrunning
     try
       IERC20Permit(underlying).permit({
         owner: onBehalfOf,
@@ -535,7 +559,11 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
         r: permitR,
         s: permitS
       })
-    {} catch {}
+    {
+      console.log('Permit successful for reserveId %s by %s', reserveId, onBehalfOf);
+    } catch {
+      console.log('Permit failed for reserveId %s by %s', reserveId, onBehalfOf);
+    }
   }
 
   /// @inheritdoc ISpoke
@@ -912,7 +940,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
 
       uint256 drawnIndex = hub.getAssetDrawnIndex(assetId);
       (uint256 drawnDebtReported, uint256 premiumDebtRay) = userPosition.getDebt(drawnIndex);
-      uint256 deficitShares = drawnDebtReported.rayDivDown(drawnIndex);
+      uint256 deficitShares = drawnDebtReported.rayDivDown(drawnIndex);//@>audit rounding down leaves dust? 
 
       IHubBase.PremiumDelta memory premiumDelta = userPosition.getPremiumDelta({
         drawnSharesTaken: deficitShares,
@@ -923,7 +951,9 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
 
       hub.reportDeficit(assetId, drawnDebtReported, premiumDelta);
       userPosition.applyPremiumDelta(premiumDelta);
+      //@>audit Subtracts deficitShares which is rounded DOWN?
       userPosition.drawnShares -= deficitShares.toUint120();
+      //@>audit set borrowing to false for this reserveId while there might be some dust left?
       positionStatus.setBorrowing(reserveId, false);
 
       emit ReportDeficit(reserveId, user, deficitShares, premiumDelta);

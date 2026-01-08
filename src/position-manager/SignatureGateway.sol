@@ -5,15 +5,13 @@ pragma solidity 0.8.28;
 import {SignatureChecker} from 'src/dependencies/openzeppelin/SignatureChecker.sol';
 import {SafeERC20, IERC20} from 'src/dependencies/openzeppelin/SafeERC20.sol';
 import {IERC20Permit} from 'src/dependencies/openzeppelin/IERC20Permit.sol';
-//@>q what are this solady contract security considerations?
-import {EIP712} from 'src/dependencies/solady/EIP712.sol';
+ import {EIP712} from 'src/dependencies/solady/EIP712.sol';
 
 import {MathUtils} from 'src/libraries/math/MathUtils.sol';
 
 import {NoncesKeyed} from 'src/utils/NoncesKeyed.sol';
-//@>q check multicall. it can the source of a bug as in multicalls if the multical reverts the signature of some calls may remain valid and suseptible to replay attack
-import {Multicall} from 'src/utils/Multicall.sol';
-//@>audit: Everyone can call multical function through this contract.
+ import {Multicall} from 'src/utils/Multicall.sol';
+//@>i: Everyone can call multical function through this contract. only the functions of the contract implementing multicall can be called
 
 //@>i EIP712Types are structs for function parameters like withdraw, borrow, ...
 //@>i EIP712Hash hash functioni for function parameters which get params as eip712types and return hash of hashconstant + parameters
@@ -27,7 +25,7 @@ import {ISignatureGateway} from 'src/position-manager/interfaces/ISignatureGatew
 /// @author Aave Labs
 /// @notice Gateway to consume EIP-712 typed intents for spoke actions on behalf of a user.
 /// @dev Contract must be an active & approved user position manager to execute spoke actions on user's behalf.
-//@>q what does this line mean?
+
 /// @dev Uses keyed-nonces where each key's namespace nonce is consumed sequentially. Intents bundled through
 /// multicall can be executed independently in order of signed nonce & deadline; does not guarantee batch atomicity.
 
@@ -201,12 +199,11 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
     address spoke,
     EIP712Types.SetUserPositionManager calldata params,
     bytes calldata signature
-  ) external onlyRegisteredSpoke(spoke) {
+  ) external onlyRegisteredSpoke(spoke) {//@>i can be called for only registered spokes
     try
-      //@>q this limits setUserPositionManagerWithSig to this position manager. can we call setUserPositionManagerWithSig directly?
       ISpoke(spoke).setUserPositionManagerWithSig(
         address(this),
-        params.user,
+        params.user,//@>i everyone can call this function with the signature from the user for the user
         params.approve,
         params.nonce,
         params.deadline,
@@ -228,10 +225,10 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
   ) external onlyRegisteredSpoke(spoke) {
     //@>i gassless signature-based approve for spender(this gateway contract)
     address underlying = _getReserveUnderlying(spoke, reserveId);
+    //@>audit there is no check fo deadline - it might be expired
     try
       IERC20Permit(underlying).permit({
-        //@>q in permit doc they recommend to use msg.sener as the owner. can using onBehalfOf introduce vulns?
-        owner: onBehalfOf,
+         owner: onBehalfOf,
         spender: address(this),
         value: value,
         deadline: deadline,
@@ -239,8 +236,11 @@ contract SignatureGateway is ISignatureGateway, GatewayBase, NoncesKeyed, Multic
         r: permitR,
         s: permitS
       })
-    {} catch {}
-    //@>q permitREserve has security considerations. where does this function is used?
+    {} catch {//@>audit empty catch means silent failure
+    }
+    //@>i permitREserve has security considerations. where does this function is used?
+    //@>i Permits should be used immediately to minimize the risk of frontrunning attacks
+    //@>i attacker can frontrun the permit and use the allowance before the user uses it seems a simple griefing 
   }
 //@>i Users can get typehashes constants and sign their intents with them
   /// @inheritdoc ISignatureGateway

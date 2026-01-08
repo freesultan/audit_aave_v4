@@ -86,8 +86,8 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
 
     //@>i withdraw withdraw from native token and send them to the sender
     _nativeWrapper.withdraw(withdrawnAmount);
-    //@>q why do they use Address.sendvalue in nativetokenGateway and safeTransfer in signatureGateway?
-    Address.sendValue(payable(msg.sender), withdrawnAmount);
+    //@>i this is used to send native currency with limited gas and prevent reentrancy attacks 2300
+     Address.sendValue(payable(msg.sender), withdrawnAmount);
 
     return (withdrawnShares, withdrawnAmount);
   }
@@ -115,8 +115,7 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     return (borrowedShares, borrowedAmount);
   }
 
-  //@>q why withdrawNative and borrowNative don't have nonReentrant modifier?
-
+ 
   /// @inheritdoc INativeTokenGateway
   function repayNative(
     address spoke,
@@ -147,8 +146,7 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     );
 
     if (leftovers > 0) {
-      //@>q read how sendVAlue in ADdress work and if it is implemented correctly here
-      Address.sendValue(payable(msg.sender), leftovers);
+       Address.sendValue(payable(msg.sender), leftovers);
     }
 
     return (repaidShares, repaidAmount);
@@ -170,8 +168,7 @@ contract NativeTokenGateway is INativeTokenGateway, GatewayBase, ReentrancyGuard
     address underlying = _getReserveUnderlying(spoke, reserveId);
     //@>i checks underlying == _nativewrapper (a erc20 token wrapper)
     _validateParams(underlying, amount);
-    //@>q how underlying token in spoke is a _nativewrapper?
-    _nativeWrapper.deposit{value: amount}();
+     _nativeWrapper.deposit{value: amount}();
     _nativeWrapper.forceApprove(spoke, amount);
     return ISpoke(spoke).supply(reserveId, amount, user);
     /*@>i 

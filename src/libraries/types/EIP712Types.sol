@@ -74,7 +74,8 @@ library EIP712Types {
     uint256 nonce;
     uint256 deadline;
   }
-//@>q does this update user positions dynamic configs to the latest dynamic configs for all his reservs?
+//@>i does this update user positions dynamic configs to the latest dynamic configs for all his reservs?
+//@>i yes for all collateral reserves of the user
   struct UpdateUserDynamicConfig {
     address spoke;
     address user;

@@ -44,7 +44,7 @@ Supply share price and drawn index cannot decrease (remains constant or increase
 
 - Determines available actions — new borrows or collateral withdrawals `are blocked` if they would reduce the Health Factor below 1.0
 - can it be a dos chance?
--
+- Prices are in e8 format for example usdc has e6 but it's price in $ is in e8
 
 ## Dynamic config keys (Dynamic risk configuration)
 
@@ -68,3 +68,9 @@ calls[3] = abi.encodeWithsignature("function3()");
 
 signatureGateway.multicall(calls);
 ```
+
+## Dust bomb
+
+- leaving dust in a lending protocol for debt and collateral after a while can bloat the protocol and disrupt the accounting
+- Every lending protocol should have a dust prevention mechanism
+-

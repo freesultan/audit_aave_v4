@@ -427,6 +427,7 @@ library LiquidationLogic {
       collateralToLiquidate > params.collateralReserveBalance ||
       (leavesCollateralDust && debtToLiquidate < params.debtReserveBalance)
     ) {
+      
       collateralToLiquidate = params.collateralReserveBalance;
 
       // - `debtToLiquidate` is decreased if `collateralToLiquidate > params.collateralReserveBalance` (if so, debt dust could remain).
@@ -438,7 +439,7 @@ library LiquidationLogic {
         params.debtAssetPrice * params.collateralAssetUnit * liquidationBonus
       );
     }
-
+    //@>audit this is the point of revert
     // revert if the liquidator does not cover the necessary debt to prevent dust from remaining
     require(params.debtToCover >= debtToLiquidate, ISpoke.MustNotLeaveDust());
 
