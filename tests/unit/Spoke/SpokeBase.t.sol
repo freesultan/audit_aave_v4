@@ -1061,7 +1061,7 @@ contract SpokeBase is Base {
     require(requiredDebtAmount <= MAX_SUPPLY_AMOUNT, 'required debt amount too high');
 
     _borrowWithoutHfCheck(spoke, user, reserveId, requiredDebtAmount);
-
+    
     uint256 finalHf = _getUserHealthFactor(spoke, user);
     assertApproxEqRel(
       finalHf,

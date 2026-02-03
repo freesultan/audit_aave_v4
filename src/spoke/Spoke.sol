@@ -450,7 +450,7 @@ abstract contract Spoke is ISpoke, Multicall, NoncesKeyed, AccessManagedUpgradea
   /*@>i 
   updateUserRiskPremium = "Update my risk based on current market conditions"
 
-updateUserDynamicConfig = "Update my account to use the latest protocol parameters"
+  updateUserDynamicConfig = "Update my account to use the latest protocol parameters"
   */
 
   /// @inheritdoc ISpoke
@@ -466,7 +466,7 @@ updateUserDynamicConfig = "Update my account to use the latest protocol paramete
     _notifyRiskPremiumUpdate(onBehalfOf, newRiskPremium);
   }
 
- //@>i update user dynamic config for all his collateral reserves to the latest dynamic config for each reserve
+    //@>i update user dynamic config for all his collateral reserves to the latest dynamic config for each reserve
   /// @inheritdoc ISpoke
   function updateUserDynamicConfig(address onBehalfOf) external {
     if (!_isPositionManager({user: onBehalfOf, manager: msg.sender})) {

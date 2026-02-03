@@ -3,6 +3,9 @@
 pragma solidity ^0.8.0;
 
 import 'tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.Base.t.sol';
+import {console} from 'forge-std/console.sol';
+import {console2} from 'forge-std/console2.sol';
+
 
 contract SpokeLiquidationCallDustTest is SpokeLiquidationCallBaseTest {
   using WadRayMath for uint256;
@@ -44,6 +47,35 @@ contract SpokeLiquidationCallDustTest is SpokeLiquidationCallBaseTest {
     _openSupplyPosition(_spoke, _daiReserveId(_spoke), 1e30);
     _openSupplyPosition(_spoke, _usdxReserveId(_spoke), 1e30);
     _openSupplyPosition(_spoke, _usdyReserveId(_spoke), 1e30);
+
+    console.log("spoke reserve count> ", _spoke.getReserveCount());
+
+    for (uint i = 0; i<_spoke.getReserveCount() ; i++) {
+     ISpoke.Reserve memory reserve = _spoke.getReserve(i);
+     console.log("reserve underlying: ", reserve.underlying);
+     console.log("reserve decimals: ", reserve.decimals);
+     console.log("reserve risk: ", reserve.collateralRisk);
+     console.log("reserve dynconfig key: ", reserve.dynamicConfigKey);
+
+    ISpoke.ReserveConfig memory reserveConfig = _spoke.getReserveConfig(i); 
+
+     console.log("reserve config Colateral risk: ", reserveConfig.collateralRisk);
+     console.log("reserve config liquidateble: ", reserveConfig.liquidatable);
+     console.log("reserve config frozen: ", reserveConfig.frozen);
+     console.log("reserve config paused: ", reserveConfig.paused);
+     console.log("reserve config borrowable:", reserveConfig.borrowable);
+
+
+     ISpoke.DynamicReserveConfig memory dynamic_reserve_config = _spoke.getDynamicReserveConfig(i,reserve.dynamicConfigKey);
+     console.log("dyn config collateral risk: " , dynamic_reserve_config.collateralFactor);
+     console.log("dyn config maxliquidationBonus: " , dynamic_reserve_config.maxLiquidationBonus);
+     console.log("dyn config liquidation fee: " , dynamic_reserve_config.liquidationFee);
+     
+
+     console.log("\n==============\n");
+    }
+
+
   }
 
   /// @dev debtToTarget is limiting factor that would result in dust collateral
@@ -53,6 +85,7 @@ contract SpokeLiquidationCallDustTest is SpokeLiquidationCallBaseTest {
     uint256 liquidationBonus = 124_00;
     uint256 targetHealthFactor = 1.0001e18;
 
+    
     vm.prank(SPOKE_ADMIN);
     _spoke.updateLiquidationConfig(
       ISpoke.LiquidationConfig({
@@ -68,6 +101,7 @@ contract SpokeLiquidationCallDustTest is SpokeLiquidationCallBaseTest {
       collateralFactor,
       liquidationBonus
     );
+
     _increaseCollateralSupply(_spoke, _daiReserveId(_spoke), 1010e18, alice); // $1010
     _increaseCollateralSupply(_spoke, _usdyReserveId(_spoke), 10_000e18, alice);
 
@@ -78,6 +112,7 @@ contract SpokeLiquidationCallDustTest is SpokeLiquidationCallBaseTest {
       amount: 9_000e18,
       onBehalfOf: alice
     });
+    //@>i return final health factor and amount borrowed
     _borrowToBeAtHf(_spoke, alice, _usdxReserveId(_spoke), 0.9999e18);
 
     uint256 debtToTarget = liquidationLogicWrapper.calculateDebtToTargetHealthFactor(
@@ -115,6 +150,7 @@ contract SpokeLiquidationCallDustTest is SpokeLiquidationCallBaseTest {
       UINT256_MAX,
       false
     );
+    
     vm.stopPrank();
 
     assertEq(_spoke.getUserSuppliedAssets(_daiReserveId(_spoke), alice), 0);

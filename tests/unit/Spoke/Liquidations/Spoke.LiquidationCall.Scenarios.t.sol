@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import 'tests/unit/Spoke/Liquidations/Spoke.LiquidationCall.Base.t.sol';
+import {console} from 'forge-std/console.sol';
 
 contract SpokeLiquidationCallScenariosTest is SpokeLiquidationCallBaseTest {
   address user = makeAddr('user');
@@ -46,9 +47,16 @@ contract SpokeLiquidationCallScenariosTest is SpokeLiquidationCallBaseTest {
       })
     );
 
+    console.log("num of reservers> ", spoke.getReserveCount());
+
     for (uint256 reserveId = 0; reserveId < spoke.getReserveCount(); reserveId++) {
+
+
       deal(spoke, reserveId, liquidator, MAX_SUPPLY_AMOUNT);
       Utils.approve(spoke, reserveId, liquidator, MAX_SUPPLY_AMOUNT);
+
+
+    
     }
   }
 
